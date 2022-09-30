@@ -304,7 +304,7 @@ impl InodeBody for ExtendedSocket {}
 ///
 #[derive(Clone, Default)]
 pub struct InodeTab {
-  pub(crate) data: Vec<InodeHeader>,
+  pub(crate) _data: Vec<InodeHeader>,
 }
 impl_converter!(InodeTab);
 
