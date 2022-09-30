@@ -225,7 +225,7 @@ impl Default for Flags {
 
 impl fmt::Display for Flags {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", format!("{:?}", self))?;
+    write!(f, "{:?}", self)?;
     Ok(())
   }
 }
@@ -240,7 +240,7 @@ pub struct InodeRef {
 
 impl fmt::Display for InodeRef {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", format!("{:?}", self))?;
+    write!(f, "{:?}", self)?;
     Ok(())
   }
 }

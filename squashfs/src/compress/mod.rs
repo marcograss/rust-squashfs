@@ -20,7 +20,7 @@ pub enum Algorithm {
 
 impl fmt::Display for Algorithm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", format!("{:?}", self))?;
+    write!(f, "{:?}", self)?;
     Ok(())
   }
 }
@@ -62,7 +62,7 @@ pub fn decompress(raw: &[u8], output: &mut [u8], algorithm: Algorithm) -> Result
       trace!(
         "[decompress] Gzip header={:X?} isZlib={}",
         &raw[0..1],
-        &raw[0..1] == &[0x78]
+        raw[0..1] == [0x78]
       );
       match raw[0..1] {
         [0x78] => {

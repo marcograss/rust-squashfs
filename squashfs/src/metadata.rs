@@ -69,7 +69,7 @@ pub fn read_meta_block(
 
   let mut output = vec![0u8; METADATA_BLOCK_SIZE];
   if compressed {
-    let desize = compress::decompress(&mut buf, &mut output, algorithm)?;
+    let desize = compress::decompress(&buf, &mut output, algorithm)?;
     let (temp, _) = output.split_at(desize);
     output = temp.to_vec();
   } else {

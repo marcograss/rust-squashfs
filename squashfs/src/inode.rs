@@ -411,7 +411,7 @@ fn parse_basic_directory(data: Vec<u8>) -> Result<Box<BasicDirectory>> {
     )));
   }
   let mut body = BasicDirectory::default();
-  (&*data).read(body.as_mut())?;
+  (&*data).read_exact(body.as_mut())?;
   Ok(Box::new(body))
 }
 
@@ -426,7 +426,7 @@ fn parse_basic_file(data: Vec<u8>, block_size: u32) -> Result<Box<BasicFile>> {
   }
 
   let mut body = BasicFile::default();
-  (&*data).read(body.as_mut())?;
+  (&*data).read_exact(body.as_mut())?;
 
   let mut block_list_size = body.size / block_size;
 
