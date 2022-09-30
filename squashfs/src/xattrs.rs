@@ -1,4 +1,4 @@
-use super::*;
+use super::{Read, Seek, SqsIoReader, Superblock, impl_converter, map_error};
 use std::io::{Result, SeekFrom};
 
 pub const XATTR_IDENTRY_SIZE: usize = 16;
@@ -57,7 +57,7 @@ pub fn read_xattrs_table(r: &mut SqsIoReader, sb: Superblock) -> Result<()> {
   );
   r.seek(SeekFrom::Start(sb.xattr_id_table_start))
     .map_err(|e| map_error!(e))?;
-  r.read_exact(&mut header.as_mut())
+  r.read_exact(header.as_mut())
     .map_err(|e| map_error!(e))?;
   warn!("[read_xattrs_table] header={:?}", header);
 
@@ -66,8 +66,8 @@ pub fn read_xattrs_table(r: &mut SqsIoReader, sb: Superblock) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-  use crate::tests::*;
-  use crate::*;
+  use crate::tests::prepare_tests;
+  use crate::{map_error, read_xattrs_table};
   use std::io::Result;
 
   #[test]

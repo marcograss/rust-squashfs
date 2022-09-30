@@ -1,4 +1,4 @@
-/// map_other_error: convert other error to io:Error
+/// `map_other_error`: convert other error to io:Error
 /// and ad file and line info to it.
 #[macro_export]
 macro_rules! map_other_error {
@@ -10,7 +10,7 @@ macro_rules! map_other_error {
   };
 }
 
-/// map_error: add file and line info to io::Error;
+/// `map_error`: add file and line info to `io::Error`;
 #[macro_export]
 macro_rules! map_error {
   ($E: expr) => {

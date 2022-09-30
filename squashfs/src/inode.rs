@@ -1,4 +1,4 @@
-use super::*;
+use super::{Read, SqsIoReader, Superblock, impl_converter, invalid_error, read_metadata};
 use std::io::Result;
 use std::mem;
 
@@ -23,7 +23,7 @@ pub enum InodeType {
 }
 
 impl InodeType {
-  pub fn body_size(&self) -> usize {
+  #[must_use] pub fn body_size(&self) -> usize {
     match self {
       InodeType::BasicDirectory => BASIC_DIRECTORY_BODY_SIZE,
       InodeType::BasicFile => BASIC_FILE_BODY_SIZE,
@@ -309,7 +309,7 @@ pub struct InodeTab {
 impl_converter!(InodeTab);
 
 impl InodeTab {
-  pub fn new() -> Self {
+  #[must_use] pub fn new() -> Self {
     Self::default()
   }
 
@@ -362,7 +362,7 @@ pub fn get_inode(
 
   // read inode body
   parse_inode_body(
-    (&uncompressed[INODE_HEADER_SIZE..]).to_vec(),
+    uncompressed[INODE_HEADER_SIZE..].to_vec(),
     sb.block_size,
     inode_type,
   )?;
@@ -430,7 +430,7 @@ fn parse_basic_file(data: Vec<u8>, block_size: u32) -> Result<Box<BasicFile>> {
 
   let mut block_list_size = body.size / block_size;
 
-  if body.size % block_size > 0 && body.fragment_block_idx != 0xffffffff {
+  if body.size % block_size > 0 && body.fragment_block_idx != 0xffff_ffff {
     block_list_size += 1
   }
 
@@ -491,8 +491,8 @@ fn parse_extened_ipc() -> Result<Box<ExtendedSocket>> {
 
 #[cfg(test)]
 mod tests {
-  use crate::tests::*;
-  use crate::*;
+  use crate::tests::prepare_tests;
+  use crate::{BASIC_BLOCK_BODY_SIZE, BASIC_CHAR_BODY_SIZE, BASIC_DIRECTORY_BODY_SIZE, BASIC_FIFO_BODY_SIZE, BASIC_FILE_BODY_SIZE, BASIC_SOCKET_BODY_SIZE, BASIC_SYMLINK_BODY_SIZE, EXTENDED_BLOCK_BODY_SIZE, EXTENDED_CHAR_BODY_SIZE, EXTENDED_DIRECTORY_BODY_SIZE, EXTENDED_FIFO_BODY_SIZE, EXTENDED_FILE_BODY_SIZE, EXTENDED_SOCKET_BODY_SIZE, EXTENDED_SYMLINK_BODY_SIZE, InodeType, get_inode};
   use std::io::Result;
 
   #[test]
@@ -507,8 +507,8 @@ mod tests {
     get_inode(
       &mut reader,
       sb,
-      block as u32,
-      offset as u32,
+      u32::from(block),
+      u32::from(offset),
       InodeType::BasicDirectory,
     )?;
 

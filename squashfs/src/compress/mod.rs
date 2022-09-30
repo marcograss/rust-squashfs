@@ -6,7 +6,7 @@ use std::fmt;
 use std::io::{Read, Result, Write};
 
 #[repr(u16)]
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, SmartDefault)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, SmartDefault)]
 pub enum Algorithm {
   #[default]
   None = 0,
@@ -26,7 +26,7 @@ impl fmt::Display for Algorithm {
 }
 
 pub fn compress(raw: &[u8], algorithm: Algorithm) -> Result<(Cow<[u8]>, bool)> {
-  if raw.len() == 0 {
+  if raw.is_empty() {
     return Ok((Cow::Borrowed(raw), false));
   }
 

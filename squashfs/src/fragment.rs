@@ -1,4 +1,4 @@
-use super::*;
+use super::{Seek, SqsIoReader, Superblock, impl_converter, invalid_error, read_meta_block};
 use byteorder::{ByteOrder, LittleEndian};
 use std::io::{Read, Result, SeekFrom};
 use std::mem;
@@ -27,7 +27,7 @@ struct FragmentEntryInternal {
 impl_converter!(FragmentEntryInternal);
 
 pub const FRAGMENT_SIZE: usize = mem::size_of::<FragmentEntryInternal>();
-pub const UNCOMPRESSED_FRAGMENT_FLAG: u32 = 0x1000_000;
+pub const UNCOMPRESSED_FRAGMENT_FLAG: u32 = 0x0100_0000;
 
 pub fn read_fragment_table(r: &mut SqsIoReader, sb: Superblock) -> Result<FragmentsTab> {
   let mut blocks = sb.fragment_entry_count / 512;
@@ -53,7 +53,7 @@ pub fn read_fragment_table(r: &mut SqsIoReader, sb: Superblock) -> Result<Fragme
       let end = (idx + 1) * FRAGMENT_SIZE;
       let fragment = parse_fragment(&mut &metadata[start..end])?;
       tab.entries.push(fragment);
-      idx = idx + 1;
+      idx += 1;
     }
 
     debug!(
@@ -80,7 +80,7 @@ fn parse_fragment(metadata: &mut &[u8]) -> Result<FragmentEntry> {
   }
   trace!("[parse_fragment] bytes={:x?}, {:x?}", metadata, 1 << 24);
   let mut internal = FragmentEntryInternal::default();
-  metadata.read_exact(&mut internal.as_mut())?;
+  metadata.read_exact(internal.as_mut())?;
 
   Ok(FragmentEntry {
     start: internal.start,
@@ -91,8 +91,8 @@ fn parse_fragment(metadata: &mut &[u8]) -> Result<FragmentEntry> {
 
 #[cfg(test)]
 mod tests {
-  use crate::tests::*;
-  use crate::*;
+  use crate::tests::prepare_tests;
+  use crate::read_fragment_table;
   use std::io::Result;
 
   #[test]

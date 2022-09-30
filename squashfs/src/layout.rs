@@ -34,7 +34,7 @@ macro_rules! impl_converter {
 macro_rules! has_flag {
   ($H: ident, $F: ident) => {
     #[inline]
-    pub fn $H(&self) -> bool {
+    #[must_use] pub fn $H(&self) -> bool {
       self.contains(Flags::$F)
     }
   };
@@ -109,7 +109,7 @@ pub struct Superblock {
 impl_converter!(Superblock);
 
 impl Superblock {
-  pub fn new() -> Self {
+  #[must_use] pub fn new() -> Self {
     Self::default()
   }
 
@@ -118,7 +118,7 @@ impl Superblock {
     Ok(())
   }
 
-  pub fn to_table(&self) -> Table {
+  #[must_use] pub fn to_table(&self) -> Table {
     table!(
       ["Field", "Value"],
       ["magic", self.magic],
@@ -198,7 +198,7 @@ impl Flags {
   has_flag!(compressor_options, COMPRESSOR_OPTIONS);
   has_flag!(uncompressed_ids, UNCOMPRESSED_IDS);
 
-  pub fn to_table(&self) -> Table {
+  #[must_use] pub fn to_table(&self) -> Table {
     table!(
       ["Flag", "Exist"],
       [Flags::UNCOMPRESSED_INODES, self.uncompressed_inodes()],
@@ -248,7 +248,7 @@ impl fmt::Display for InodeRef {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::tests::*;
+  use crate::tests::prepare_tests;
   use std::io::Result;
   use std::mem::size_of;
 

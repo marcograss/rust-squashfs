@@ -1,4 +1,4 @@
-use super::*;
+use super::{METADATA_BLOCK_SIZE, Seek, SqsIoReader, Superblock, read_meta_block};
 use byteorder::{ByteOrder, LittleEndian};
 use std::io::{Read, Result, SeekFrom};
 
@@ -39,7 +39,7 @@ pub fn read_lookup_table(r: &mut SqsIoReader, sb: Superblock) -> Result<IdTab> {
     data.extend(uncompressed.iter());
   }
 
-  Ok(parse_id_tab(&mut &*data)?)
+  parse_id_tab(&mut &*data)
 }
 
 pub fn parse_id_tab(raw: &mut &[u8]) -> Result<IdTab> {
@@ -49,9 +49,9 @@ pub fn parse_id_tab(raw: &mut &[u8]) -> Result<IdTab> {
     entries.set_len(count);
   }
 
-  let (_, mut data, _) = unsafe { (&mut entries).align_to_mut::<u8>() };
+  let (_, data, _) = unsafe { entries.align_to_mut::<u8>() };
 
-  raw.read_exact(&mut data)?;
+  raw.read_exact(data)?;
 
   trace!("[parse_id_tab] entries={:?}", entries);
 
@@ -60,8 +60,8 @@ pub fn parse_id_tab(raw: &mut &[u8]) -> Result<IdTab> {
 
 #[cfg(test)]
 mod tests {
-  use crate::tests::*;
-  use crate::*;
+  use crate::tests::prepare_tests;
+  use crate::{parse_id_tab, read_lookup_table};
   use std::io::Result;
 
   #[test]
@@ -78,7 +78,7 @@ mod tests {
       0x0, 0x0, 0x0, 0x0, 0xa, 0x0, 0x0, 0x0, 0x1, 0x0, 0x2, 0x2c, 0xe6, 0x2a, 0x85, 0x7f,
     ];
 
-    let expected = vec![0, 10, 0x2c020001, 0x7f852ae6];
+    let expected = vec![0, 10, 0x2c02_0001, 0x7f85_2ae6];
 
     let uidsgids = parse_id_tab(&mut &*raw)?;
 

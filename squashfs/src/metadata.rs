@@ -1,4 +1,4 @@
-use super::*;
+use super::{Read, Seek, SqsIoReader, compress};
 use byteorder::{ByteOrder, LittleEndian};
 use std::io::{Result, SeekFrom};
 
@@ -13,11 +13,11 @@ pub fn read_metadata(
   size: usize,
 ) -> Result<Vec<u8>> {
   let mut buf = vec![];
-  let mut location = first_block + block_offset as u64;
+  let mut location = first_block + u64::from(block_offset);
 
   // read first block
   let (meta, next_block_offset) = read_meta_block(r, algorithm, location as u64)?;
-  location = next_block_offset as u64;
+  location = u64::from(next_block_offset);
   buf.extend(&meta[(byte_offset as usize)..]);
 
   // maybe cross many block, read them all.
@@ -30,7 +30,7 @@ pub fn read_metadata(
       buf.len()
     );
     let (meta, next_block_offset) = read_meta_block(r, algorithm, location as u64)?;
-    location = next_block_offset as u64;
+    location = u64::from(next_block_offset);
     buf.extend(meta);
     i += 1;
   }
@@ -59,7 +59,7 @@ pub fn read_meta_block(
   let mut buf = vec![0u8; size as usize];
   // Skip header, read data
   r.seek(SeekFrom::Start(location + 2))?;
-  r.take(size as u64).read_exact(&mut buf)?;
+  r.take(u64::from(size)).read_exact(&mut buf)?;
 
   trace!(
     "[read_meta_block] raw metadata: data({})={:02x?}",
@@ -86,16 +86,16 @@ pub fn read_meta_block(
 }
 
 /// returns data size and is compresseds
-pub fn get_metadata_size(header: u16) -> (u16, bool) {
+#[must_use] pub fn get_metadata_size(header: u16) -> (u16, bool) {
   let data_size = header & 0x7FFF;
-  let compressed = !(header & 0x8000 == 0x8000);
+  let compressed = header & 0x8000 != 0x8000;
   (data_size, compressed)
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::tests::*;
+  use crate::tests::prepare_tests;
   use std::io::Result;
 
   /// (header,size,compressed)
